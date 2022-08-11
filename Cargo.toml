@@ -1,0 +1,2 @@
+[workspace]
+members = ["actix-web-eventsub", "axum-eventsub", "eventsub-common"]
