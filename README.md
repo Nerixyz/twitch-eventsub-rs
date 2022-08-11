@@ -62,7 +62,7 @@ Copy the event-id and retrigger the evenet:
 twitch event retrigger -i {EVENT_ID} -F http://127.0.0.1:8080/eventsub -s 5f5f121fc807a21bab4209b2f34e90932778f12c099ca3ca17ee00afd0b328ba
 ```
 
-### `axum`
+## `axum`
 
 ### [**Basic Example**](axum-eventsub/examples/basic_axum.rs)
 
