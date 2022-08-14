@@ -1,9 +1,7 @@
 //! This module contains the main `EventSub` extractor [`crate::Data`].
 
 use crate::types::EventSubscription;
-use actix_web::{
-    dev, error::PayloadError, http::StatusCode, FromRequest, HttpRequest, ResponseError,
-};
+use actix_web::{dev, error::PayloadError, FromRequest, HttpRequest, ResponseError};
 use bytes::BytesMut;
 pub use eventsub_common::headers::{HeaderType, InvalidHeaders};
 use eventsub_common::{
@@ -88,7 +86,8 @@ pub struct Data<P, T> {
 }
 
 /// Errors when verifying and decoding the eventsub payload.
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, actix_web_error::Json)]
+#[status(BAD_REQUEST)]
 pub enum VerifyDecodeError {
     /// An issue with the headers. See [`eventsub_common::headers::InvalidHeaders`] for more detail.
     #[error("Invalid headers: {0}")]
@@ -107,9 +106,11 @@ pub enum VerifyDecodeError {
     Serde(serde_json::Error),
     /// No HMAC key was provided - [`Config::get_secret`] returned [`None`].
     #[error("No HMAC key provided")]
+    #[status(INTERNAL_SERVER_ERROR)]
     NoHmacKey,
     /// The HMAC key was too short - [`Config::get_secret`] returned a slice that was too short.
     #[error("Bad secret key")]
+    #[status(INTERNAL_SERVER_ERROR)]
     HmacInit(InvalidLength),
     /// The subscription version didn't match the expected one.
     #[error("Version mismatch - expected {0}")]
@@ -318,24 +319,6 @@ where
                         Poll::Pending => Poll::Pending,
                     }
                 }
-            }
-        }
-    }
-}
-
-impl ResponseError for VerifyDecodeError {
-    fn status_code(&self) -> StatusCode {
-        match self {
-            VerifyDecodeError::Headers(_)
-            | VerifyDecodeError::SignatureMismatch
-            | VerifyDecodeError::RequestTooLarge
-            | VerifyDecodeError::PayloadError(_)
-            | VerifyDecodeError::Serde(_)
-            | VerifyDecodeError::VersionMismatch(_)
-            | VerifyDecodeError::IdNotUtf8
-            | VerifyDecodeError::WontHandleId => StatusCode::BAD_REQUEST,
-            VerifyDecodeError::NoHmacKey | VerifyDecodeError::HmacInit(_) => {
-                StatusCode::INTERNAL_SERVER_ERROR
             }
         }
     }
