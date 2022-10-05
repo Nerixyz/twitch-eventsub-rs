@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-twitch_api = { git = "https://github.com/twitch-rs/twitch_api.git", rev = "340a582", default-features = false, features = ["eventsub"] }
+twitch_api = { git = "https://github.com/twitch-rs/twitch_api.git", default-features = false, features = ["eventsub"] }
 http = "0.2"
 thiserror = "1.0"
 hex = "0.4"
