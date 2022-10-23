@@ -12,10 +12,7 @@ for [actix-web](https://actix.rs/) and [axum](https://docs.rs/axum) based on [tw
 
 ## [twitch-cli]
 
-This library relies heavily on the headers Twitch is sending.
-The currently released version of the [twitch-cli] doesn't send all headers correctly.
-
-You need to compile the cli from source (currently from the [Nerixyz:fix/empty-header](https://github.com/Nerixyz/twitch-cli/tree/fix/empty-header) branch; `make build`).
+You can test the endpoints using the [Twitch's official CLI](https://dev.twitch.tv/docs/cli) (v1.1.7 and up, [GitHub Repo](https://github.com/twitchdev/twitch-cli)).
 
 ## `actix-web`
 
