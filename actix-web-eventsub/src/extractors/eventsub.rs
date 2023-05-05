@@ -40,7 +40,7 @@ type HmacSha256 = Hmac<Sha256>;
 /// Consider doing expensive work in [`actix_web::rt::spawn`].
 ///
 /// ```
-/// # use actix_web::{HttpRequest, HttpResponse, Responder, web};
+/// # use actix_web::{HttpRequest, HttpResponse, Responder, web::{self, Data}};
 /// # use actix_web_eventsub::{EventsubPayload, Verification, VerifyDecodeError, types::channel::ChannelPointsCustomRewardRedemptionAddV1};
 /// # struct EventsubConfig;
 /// #
@@ -48,8 +48,10 @@ type HmacSha256 = Hmac<Sha256>;
 /// #     type Error = VerifyDecodeError;
 /// #     type CheckEventIdFut = std::future::Ready<bool>;
 /// #
-/// #     fn get_secret(_req: &HttpRequest) -> Option<&[u8]> {
-/// #         req.app_data::<web::Data<Vec<u8>>>().map(|v| v.as_slice())
+/// #     fn get_secret(req: &HttpRequest) -> Result<&[u8], VerifyDecodeError> {
+/// #         req.app_data::<Data<Vec<u8>>>()
+/// #             .map(|v| v.as_slice())
+/// #             .ok_or(VerifyDecodeError::NoHmacKey)
 /// #     }
 /// #
 /// #     fn check_event_id(_req: &HttpRequest, _id: &str) -> Self::CheckEventIdFut {
