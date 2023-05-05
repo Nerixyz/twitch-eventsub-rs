@@ -13,9 +13,11 @@
 //!
 //!     type CheckEventIdFut = std::future::Ready<bool>;
 //!
-//!     fn get_secret(req: &HttpRequest) -> Option<&[u8]> {
+//!     fn get_secret(req: &HttpRequest) -> Result<&[u8], VerifyDecodeError> {
 //!         // We put a `Data<Vec<u8>>` as `app_data` in our `App`.
-//!         req.app_data::<Data<Vec<u8>>>().map(|v| v.as_slice())
+//!         req.app_data::<Data<Vec<u8>>>()
+//!             .map(|v| v.as_slice())
+//!             .ok_or(VerifyDecodeError::NoHmacKey)
 //!     }
 //!
 //!     fn check_event_id(req: &HttpRequest, id: &str) -> Self::CheckEventIdFut {

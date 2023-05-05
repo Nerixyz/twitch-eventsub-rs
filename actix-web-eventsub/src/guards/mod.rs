@@ -47,7 +47,7 @@ impl<T: EventSubscription> Guard for EventTypeGuard<T> {
 /// Use this guard in a [`guard_fn`](actix_web::guards::guard_fn).
 ///
 /// ```
-/// # use actix_web::{Responder, web, HttpRequest, HttpResponse};
+/// # use actix_web::{Responder, web, HttpRequest, HttpResponse, post};
 /// # use actix_web_eventsub::{guards,VerifyDecodeError, EventsubPayload, Config, types::channel::ChannelPointsCustomRewardRedemptionAddV1};
 /// #
 /// # struct EventsubConfig;
