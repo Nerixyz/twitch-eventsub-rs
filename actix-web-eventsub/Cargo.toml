@@ -24,7 +24,7 @@ thiserror = "1.0"
 
 eventsub-common = { path = "../eventsub-common", features = ["actix-http"] }
 
-actix-web-error = { git = "https://github.com/Nerixyz/actix-web-error.git", rev = "9ebcd1f" }
+actix-web-error = "0.2.0"
 
 [dev-dependencies]
 actix-web = "4.1"

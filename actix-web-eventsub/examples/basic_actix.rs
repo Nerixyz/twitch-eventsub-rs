@@ -1,6 +1,6 @@
 use actix_web::{post, web::Data, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use actix_web_eventsub::{
-    guards, types::channel::ChannelPointsCustomRewardRedemptionAddV1, Config, EventsubPayload,
+    types::channel::ChannelPointsCustomRewardRedemptionAddV1, Config, EventsubPayload,
     Verification, VerifyDecodeError,
 };
 use std::{
