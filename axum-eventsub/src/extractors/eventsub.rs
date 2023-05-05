@@ -1,7 +1,7 @@
 use axum::{
     body::HttpBody,
-    extract::{rejection::BytesRejection, FromRequest, RequestParts},
-    http::{Extensions, StatusCode},
+    extract::{rejection::BytesRejection, FromRequest},
+    http::{Request, StatusCode},
     response::{IntoResponse, Response},
     BoxError,
 };
@@ -21,17 +21,16 @@ pub struct Data<P, C> {
 }
 
 /// Configuration for verifying and decoding eventsub payloads.
-pub trait Config {
+///
+/// The config is generic over the app state (`S`).
+pub trait Config<S> {
     /// Preferred rejection (see [`Config::convert_error`]).
     ///
     /// If you don't care about the error, set this to [`VerifyDecodeError`].
     type Rejection: IntoResponse;
 
-    /// Get the eventsub secret.
-    ///
-    /// This should always return [`Some`], but if you can't get
-    /// the secret at all, return [`None`] to avoid panicking.
-    fn get_secret(ext: &Extensions) -> Option<&[u8]>;
+    /// Get the eventsub secret from the app state.
+    fn get_secret(state: &S) -> &[u8];
 
     /// Convert the [`VerifyDecodeError`] into a custom error.
     ///
@@ -58,9 +57,6 @@ pub enum VerifyDecodeError {
     /// serde_json couldn't deserialize the payload.
     #[error("JSON Deserialization error: {0}")]
     Serde(serde_json::Error),
-    /// No HMAC key was provided - [`Config::get_secret`] returned [`None`].
-    #[error("No HMAC key provided")]
-    NoHmacKey,
     /// The HMAC key was too short - [`Config::get_secret`] returned a slice that was too short.
     #[error("Bad secret key")]
     HmacInit(InvalidLength),
@@ -70,23 +66,24 @@ pub enum VerifyDecodeError {
 }
 
 #[async_trait::async_trait]
-impl<S, C, B> FromRequest<B> for Data<S, C>
+impl<State, Sub, C, B> FromRequest<State, B> for Data<Sub, C>
 where
-    B: HttpBody + Send,
+    B: HttpBody + Send + 'static,
     B::Data: Send,
     B::Error: Into<BoxError>,
-    C: Config,
-    S: EventSubscription,
+    C: Config<State>,
+    Sub: EventSubscription,
+    State: std::marker::Send + std::marker::Sync,
 {
     type Rejection = C::Rejection;
 
-    async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
-        let headers = headers::read_eventsub_headers::<_, S>(req.headers())
+    async fn from_request(req: Request<B>, state: &State) -> Result<Self, Self::Rejection> {
+        let headers = headers::read_eventsub_headers::<_, Sub>(req.headers())
             .map_err(|e| C::convert_error(VerifyDecodeError::Headers(e)))?;
-        let mut mac = init_mac::<C>(req.extensions(), headers.id_bytes, headers.timestamp_bytes)
+        let mut mac = init_mac::<State, C>(state, headers.id_bytes, headers.timestamp_bytes)
             .map_err(C::convert_error)?;
         let payload_headers = headers.payload;
-        let payload = Bytes::from_request(req)
+        let payload = Bytes::from_request(req, state)
             .await
             .map_err(|e| C::convert_error(VerifyDecodeError::PayloadError(e)))?;
         mac.update(&payload);
@@ -115,14 +112,13 @@ where
     }
 }
 
-fn init_mac<T: Config>(
-    ext: &Extensions,
+fn init_mac<S, T: Config<S>>(
+    state: &S,
     id_bytes: &[u8],
     timestamp_bytes: &[u8],
 ) -> Result<HmacSha256, VerifyDecodeError> {
     let mut mac =
-        HmacSha256::new_from_slice(T::get_secret(ext).ok_or(VerifyDecodeError::NoHmacKey)?)
-            .map_err(VerifyDecodeError::HmacInit)?;
+        HmacSha256::new_from_slice(T::get_secret(state)).map_err(VerifyDecodeError::HmacInit)?;
     mac.update(id_bytes);
     mac.update(timestamp_bytes);
 
@@ -138,9 +134,7 @@ impl IntoResponse for VerifyDecodeError {
             | VerifyDecodeError::PayloadError(_)
             | VerifyDecodeError::Serde(_)
             | VerifyDecodeError::VersionMismatch(_) => StatusCode::BAD_REQUEST,
-            VerifyDecodeError::NoHmacKey | VerifyDecodeError::HmacInit(_) => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
+            VerifyDecodeError::HmacInit(_) => StatusCode::INTERNAL_SERVER_ERROR,
         };
 
         (status, self.to_string()).into_response()

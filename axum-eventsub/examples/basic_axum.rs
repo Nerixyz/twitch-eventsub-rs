@@ -1,17 +1,21 @@
-use axum::{http::Extensions, routing::post, Extension, Router};
+use axum::{routing::post, Router};
 use axum_eventsub::{
     types::channel::ChannelPointsCustomRewardRedemptionAddV1, Verification, VerifyDecodeError,
 };
 use eventsub_common::EventsubPayload;
 use std::{borrow::Cow, sync::Arc};
 
+struct AppState {
+    secret: &'static [u8],
+}
+
 struct EventsubConfig;
 
-impl axum_eventsub::Config for EventsubConfig {
+impl axum_eventsub::Config<Arc<AppState>> for EventsubConfig {
     type Rejection = VerifyDecodeError;
 
-    fn get_secret(ext: &Extensions) -> Option<&[u8]> {
-        ext.get::<Arc<Vec<u8>>>().map(|v| v.as_slice())
+    fn get_secret(state: &Arc<AppState>) -> &[u8] {
+        state.secret
     }
 
     fn convert_error(error: VerifyDecodeError) -> Self::Rejection {
@@ -44,9 +48,9 @@ async fn main() {
     let app = Router::new()
         .route("/eventsub", post(eventsub))
         // We don't hex decode here, to match twitch-cli behavior
-        .layer(Extension(Arc::new(
-            b"5f5f121fc807a21bab4209b2f34e90932778f12c099ca3ca17ee00afd0b328ba".to_vec(),
-        )));
+        .with_state(Arc::new(AppState {
+            secret: b"5f5f121fc807a21bab4209b2f34e90932778f12c099ca3ca17ee00afd0b328ba",
+        }));
 
     // run it with hyper on localhost:8080
     axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
