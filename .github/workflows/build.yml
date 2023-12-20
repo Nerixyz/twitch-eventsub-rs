@@ -25,7 +25,7 @@ jobs:
 
       - name: Setup Scoop (Windows)
         if: startsWith(matrix.os, 'windows')
-        uses: MinoruSekine/setup-scoop@v1
+        uses: MinoruSekine/setup-scoop@11383f96752fc77f5b26e0d2e51e216250059ccf
       - name: Install Twitch-Cli (Windows)
         if: startsWith(matrix.os, 'windows')
         shell: powershell
@@ -33,7 +33,7 @@ jobs:
           scoop bucket add twitch https://github.com/twitchdev/scoop-bucket.git
           scoop install twitch-cli
       - name: Install Twitch-Cli (Linux/macOS)
-        if: startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macos')
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
         run: brew install twitchdev/twitch/twitch-cli
 
       - name: Build
