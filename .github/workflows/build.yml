@@ -20,18 +20,27 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Rust cache
+
         run: rustup toolchain install stable --profile minimal
       - uses: Swatinem/rust-cache@v2
 
       - name: Setup Scoop (Windows)
         if: startsWith(matrix.os, 'windows')
         uses: MinoruSekine/setup-scoop@11383f96752fc77f5b26e0d2e51e216250059ccf
+
       - name: Install Twitch-Cli (Windows)
         if: startsWith(matrix.os, 'windows')
         shell: powershell
         run: |
           scoop bucket add twitch https://github.com/twitchdev/scoop-bucket.git
           scoop install twitch-cli
+
+      - name: Enable Homebrew (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          echo "/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin" >> $GITHUB_PATH
+
       - name: Install Twitch-Cli (Linux/macOS)
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
         run: brew install twitchdev/twitch/twitch-cli
