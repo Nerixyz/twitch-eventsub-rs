@@ -22,6 +22,20 @@ jobs:
       - name: Rust cache
         run: rustup toolchain install stable --profile minimal
       - uses: Swatinem/rust-cache@v2
+
+      - name: Setup Scoop (Windows)
+        if: startsWith(matrix.os, 'windows')
+        uses: MinoruSekine/setup-scoop@v1
+      - name: Install Twitch-Cli (Windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: powershell
+        run: |
+          scoop bucket add twitch https://github.com/twitchdev/scoop-bucket.git
+          scoop install twitch-cli
+      - name: Install Twitch-Cli (Linux/macOS)
+        if: startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macos')
+        run: brew install twitchdev/twitch/twitch-cli
+
       - name: Build
         run: cargo build
       - name: Run clippy
