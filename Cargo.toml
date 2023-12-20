@@ -1,2 +1,3 @@
 [workspace]
 members = ["actix-web-eventsub", "axum-eventsub", "eventsub-common"]
+resolver = "2"

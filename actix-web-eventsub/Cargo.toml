@@ -32,6 +32,11 @@ env_logger = "0.10"
 mime = "0.3"
 deadpool-redis = { version = "0.14", features = ["rt_tokio_1"] }
 
+# For testing
+actix-test = "0.1"
+anyhow = "1.0"
+tokio = { version = "1", features = ["process"] }
+
 [[example]]
 name = "basic-actix"
 path = "examples/basic_actix.rs"
