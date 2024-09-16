@@ -30,7 +30,7 @@ actix-web-error = "0.2.0"
 actix-web = "4.1"
 env_logger = "0.11"
 mime = "0.3"
-deadpool-redis = { version = "0.16", features = ["rt_tokio_1"] }
+deadpool-redis = { version = "0.17", features = ["rt_tokio_1"] }
 
 # For testing
 actix-test = "0.1"
