@@ -265,12 +265,9 @@ where
                             let signature = std::mem::replace(
                                 mac,
                                 HmacSha256::new(GenericArray::from_slice(&EMPTY_KEY)),
-                            )
-                            .finalize()
-                            .into_bytes();
+                            );
 
-                            if AsRef::<[u8; 32]>::as_ref(&signature) != headers.signature.as_slice()
-                            {
+                            if signature.verify_slice(&headers.signature).is_err() {
                                 break 'outer Poll::Ready(Err(T::convert_error(
                                     VerifyDecodeError::SignatureMismatch,
                                 )));
