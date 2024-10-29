@@ -87,9 +87,8 @@ where
             .await
             .map_err(|e| C::convert_error(VerifyDecodeError::PayloadError(e)))?;
         mac.update(&payload);
-        let computed = mac.finalize().into_bytes();
 
-        if AsRef::<[u8; 32]>::as_ref(&computed) == payload_headers.signature.as_slice() {
+        if mac.verify_slice(&payload_headers.signature).is_ok() {
             match payload_headers.message_type {
                 MessageType::Verification => {
                     serde_json::from_slice(&payload).map(EventsubPayload::Verification)
