@@ -9,7 +9,7 @@ edition = "2021"
 serde = { version = "1.0", features = ["derive"] }
 twitch_api = { version = "0.7.0-rc.6", features = ["eventsub"] }
 http = "0.2"
-thiserror = "1.0"
+thiserror = "2.0"
 hex = "0.4"
 chrono = "0.4"
 actix-http = { version = "3.2", optional = true }
